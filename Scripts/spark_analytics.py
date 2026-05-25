@@ -16,7 +16,10 @@ def run_analytics():
     properties = {
         "user": db_user,
         "password": db_password,
-        "driver": "com.mysql.cj.jdbc.Driver"
+        "driver": "com.mysql.cj.jdbc.Driver",
+        "useSSL": "true",
+        "requireSSL": "true",
+        "enabledTLSProtocols": "TLSv1.2,TLSv1.3"
     }
 
     spark = SparkSession.builder \

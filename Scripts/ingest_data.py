@@ -16,10 +16,15 @@ def ingest_data():
     db_name = os.getenv('DB_NAME', 'retail_db')
     file_path = os.getenv('DATASET_PATH', 'Dataset/online_retail_II.xlsx')
 
+    db_ssl_mode = os.getenv('DB_SSL_MODE', 'PREFERRED')
+    connect_args = {}
+    if db_ssl_mode:
+        connect_args["ssl"] = {"ssl_mode": db_ssl_mode}
+
     connection_string = f"mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}"
     
     try:
-        engine = create_engine(connection_string)
+        engine = create_engine(connection_string, connect_args=connect_args)
         logger.info(f"Connected to database at {db_host}")
     except Exception as e:
         logger.error(f"Error connecting to database: {e}")

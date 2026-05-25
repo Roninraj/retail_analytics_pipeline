@@ -128,6 +128,6 @@ if os.getenv('VERCEL') or os.getenv('LAMBDA_TASK_ROOT'):
 else:
     STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 

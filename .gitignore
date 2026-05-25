@@ -65,3 +65,4 @@ env/
 # Project specific
 Dataset/
 .openclaude/
+staticfiles/

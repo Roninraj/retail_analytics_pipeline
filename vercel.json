@@ -16,10 +16,6 @@
       "dest": "vercel_backend.py"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "vercel_django.py"
     }

@@ -122,7 +122,11 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+if os.getenv('VERCEL') or os.getenv('LAMBDA_TASK_ROOT'):
+    STATIC_ROOT = '/tmp/staticfiles'
+else:
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 

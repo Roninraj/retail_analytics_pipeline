@@ -8,7 +8,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dashboard_app.settings')
 
 # Automatically collect static files for WhiteNoise on serverless boot
 from django.conf import settings
-staticfiles_dir = os.path.join(settings.BASE_DIR, 'staticfiles')
+staticfiles_dir = settings.STATIC_ROOT
 if not os.path.exists(staticfiles_dir):
     try:
         from django.core.management import call_command

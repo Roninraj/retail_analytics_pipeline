@@ -1,9 +1,13 @@
 import os
+import sys
+
+# Add project root to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, sum, count, max, min, expr, countDistinct, to_date, lit, month, year, concat, desc, date_format, hour, when, abs, floor, months_between, first, avg
 from pyspark.ml.feature import VectorAssembler, StandardScaler
 from pyspark.ml.clustering import KMeans
-import sys
 
 def run_analytics():
     # Configuration

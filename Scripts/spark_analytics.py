@@ -16,7 +16,7 @@ def run_analytics():
     db_host = os.getenv('DB_HOST', 'mysql-service')
     db_name = os.getenv('DB_NAME', 'retail_db')
     
-    jdbc_url = f"jdbc:mysql://{db_host}/{db_name}"
+    jdbc_url = f"jdbc:mysql://{db_host}/{db_name}?sessionVariables=tidb_skip_isolation_level_check=1"
     properties = {
         "user": db_user,
         "password": db_password,

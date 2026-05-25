@@ -11,7 +11,7 @@ import plotly.io as pio
 import base64
 import numpy as np
 
-API_URL = os.getenv('API_URL', 'http://backend-service:8000')
+API_URL = os.getenv('API_URL')
 
 def empty_fig(title="Data Not Available"):
     """Helper to return a styled empty figure."""
@@ -37,26 +37,32 @@ def safe_fetch_json(url):
 def dashboard_view(request):
     context = {}
     try:
+        # Dynamically determine the API_URL if not explicitly set in env
+        api_url = API_URL
+        if not api_url:
+            scheme = 'https' if request.is_secure() or request.headers.get('x-forwarded-proto') == 'https' else 'http'
+            api_url = f"{scheme}://{request.get_host()}"
+
         # --- 1. Fetch ALL Data from API ---
-        kpis = safe_fetch_json(f"{API_URL}/api/kpis")
+        kpis = safe_fetch_json(f"{api_url}/api/kpis")
         if not kpis:
             kpis = {"total_revenue": 0, "total_customers": 0, "total_orders": 0, "aov": 0, "retention_rate": 0, "cancellation_rate": 0}
             
-        revenue_data = safe_fetch_json(f"{API_URL}/api/revenue")
-        segment_data = safe_fetch_json(f"{API_URL}/api/segments")
-        top_products_raw = safe_fetch_json(f"{API_URL}/api/top-products")
-        top_countries = safe_fetch_json(f"{API_URL}/api/top-countries")
-        monthly_rev = safe_fetch_json(f"{API_URL}/api/monthly-revenue")
+        revenue_data = safe_fetch_json(f"{api_url}/api/revenue")
+        segment_data = safe_fetch_json(f"{api_url}/api/segments")
+        top_products_raw = safe_fetch_json(f"{api_url}/api/top-products")
+        top_countries = safe_fetch_json(f"{api_url}/api/top-countries")
+        monthly_rev = safe_fetch_json(f"{api_url}/api/monthly-revenue")
         
-        sales_heatmap_raw = safe_fetch_json(f"{API_URL}/api/sales-heatmap")
-        clv_dist_raw = safe_fetch_json(f"{API_URL}/api/clv-distribution")
-        cohort_raw = safe_fetch_json(f"{API_URL}/api/cohort-retention")
-        prod_perf_raw = safe_fetch_json(f"{API_URL}/api/product-performance")
-        ops_raw = safe_fetch_json(f"{API_URL}/api/operational-metrics")
+        sales_heatmap_raw = safe_fetch_json(f"{api_url}/api/sales-heatmap")
+        clv_dist_raw = safe_fetch_json(f"{api_url}/api/clv-distribution")
+        cohort_raw = safe_fetch_json(f"{api_url}/api/cohort-retention")
+        prod_perf_raw = safe_fetch_json(f"{api_url}/api/product-performance")
+        ops_raw = safe_fetch_json(f"{api_url}/api/operational-metrics")
         
-        new_returning_raw = safe_fetch_json(f"{API_URL}/api/new-returning-customers")
-        seasonal_raw = safe_fetch_json(f"{API_URL}/api/seasonal-trend")
-        geo_dist_raw = safe_fetch_json(f"{API_URL}/api/geo-distribution")
+        new_returning_raw = safe_fetch_json(f"{api_url}/api/new-returning-customers")
+        seasonal_raw = safe_fetch_json(f"{api_url}/api/seasonal-trend")
+        geo_dist_raw = safe_fetch_json(f"{api_url}/api/geo-distribution")
 
         # --- 2. Build Visualizations ---
         

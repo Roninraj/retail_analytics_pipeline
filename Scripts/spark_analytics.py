@@ -29,6 +29,7 @@ def run_analytics():
     spark = SparkSession.builder \
         .appName("RetailAnalytics") \
         .config("spark.sql.legacy.timeParserPolicy", "LEGACY") \
+        .config("spark.jars.packages", "mysql:mysql-connector-java:8.0.33") \
         .getOrCreate()
 
     try:

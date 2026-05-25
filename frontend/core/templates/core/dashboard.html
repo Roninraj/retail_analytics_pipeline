@@ -1,0 +1,233 @@
+{% load django_bootstrap5 %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Analytics Pro | Industrial Dashboard</title>
+    {% bootstrap_css %}
+    <script src="{% static 'js/plotly.min.js' %}"></script>
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
+        .sidebar { background: #1e293b; min-height: 100vh; color: white; position: fixed; width: 260px; z-index: 1000; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 24px; transition: 0.3s; }
+        .card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .sidebar .nav-link.active { color: white !important; background: rgba(255,255,255,0.1); border-radius: 8px; }
+        .kpi-card { border-left: 5px solid #3b82f6; }
+        .kpi-val { font-size: 1.8rem; font-weight: 800; color: #0f172a; }
+        .kpi-label { text-transform: uppercase; font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.05em; }
+        .chart-container { min-height: 500px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar d-none d-lg-block p-4">
+        <div class="mb-5">
+            <h3 class="fw-bold text-primary">Retail<span class="text-white">Pro</span></h3>
+            <p class="text-muted small">Industrial Analytics Pipeline</p>
+        </div>
+        <nav class="nav flex-column gap-2" id="sidebarNav">
+            <a class="nav-link text-white-50 active fw-semibold" data-bs-toggle="tab" data-bs-target="#exec" href="#">Executive Summary</a>
+            <a class="nav-link text-white-50" data-bs-toggle="tab" data-bs-target="#sales" href="#">Sales Performance</a>
+            <a class="nav-link text-white-50" data-bs-toggle="tab" data-bs-target="#cust" href="#">Customer Analytics</a>
+            <a class="nav-link text-white-50" data-bs-toggle="tab" data-bs-target="#prod" href="#">Product Intelligence</a>
+            <a class="nav-link text-white-50" data-bs-toggle="tab" data-bs-target="#geo" href="#">Geospatial Analysis</a>
+            <a class="nav-link text-white-50" data-bs-toggle="tab" data-bs-target="#ops" href="#">Operations & Returns</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header class="mb-5 d-flex justify-content-between align-items-end">
+            <div>
+                <h1 class="fw-extrabold text-slate-900 mb-0">Business Intelligence Command</h1>
+                <p class="text-muted">Multi-dimensional performance analysis across 1M+ transactions.</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-success-subtle text-success border border-success p-2 px-3">Live Feed: Connected</span>
+            </div>
+        </header>
+
+        {% if error %}
+        <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center">
+            <div class="me-3">⚠</div>
+            <div><strong>Pipeline Error:</strong> {{ error }}</div>
+        </div>
+        {% else %}
+        <div id="plotly-status" class="alert alert-warning d-none">
+            Plotly library is loading or failed to load.
+        </div>
+
+        <div class="tab-content">
+            <!-- SECTION A: EXECUTIVE SUMMARY -->
+            <div class="tab-pane fade show active" id="exec">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card p-4 kpi-card">
+                            <div class="kpi-label">Gross Revenue</div>
+                            <div class="kpi-val text-success">${{ kpis.total_revenue|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-4 kpi-card border-primary">
+                            <div class="kpi-label">Total Orders</div>
+                            <div class="kpi-val">{{ kpis.total_orders }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-4 kpi-card border-info">
+                            <div class="kpi-label">Active Customers</div>
+                            <div class="kpi-val">{{ kpis.total_customers }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-4 kpi-card border-warning">
+                            <div class="kpi-label">Avg Order Value</div>
+                            <div class="kpi-val text-primary">${{ kpis.aov|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-rev-trend" class="chart-container"></div></div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-rev-orders" class="chart-container"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION B: SALES PERFORMANCE -->
+            <div class="tab-pane fade" id="sales">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card p-4">
+                            <div id="chart-peak-hours" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION C: CUSTOMER ANALYTICS -->
+            <div class="tab-pane fade" id="cust">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-retention" class="chart-container"></div></div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-cohort-rev" class="chart-container"></div></div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card p-4"><div id="chart-segmentation" class="chart-container"></div></div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card p-4"><div id="chart-clv" class="chart-container"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION D: PRODUCT INTELLIGENCE -->
+            <div class="tab-pane fade" id="prod">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-top-products" class="chart-container"></div></div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-concentration" class="chart-container"></div></div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-return-risk" class="chart-container"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION E: GEOSPATIAL ANALYSIS -->
+            <div class="tab-pane fade" id="geo">
+                <div class="card p-0 overflow-hidden">
+                    <div id="chart-geo-map" style="min-height: 750px;"></div>
+                </div>
+            </div>
+
+            <!-- SECTION F: OPERATIONS & RETURNS -->
+            <div class="tab-pane fade" id="ops">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-leakage" class="chart-container"></div></div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="card p-4"><div id="chart-cancellation" class="chart-container"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const config = { responsive: true, displaylogo: false };
+
+        function initPlots() {
+            console.log("Initializing plots...");
+            const statusEl = document.getElementById('plotly-status');
+            
+            if (typeof Plotly === 'undefined') {
+                console.error("Plotly library not loaded!");
+                if (statusEl) {
+                    statusEl.classList.remove('d-none');
+                    statusEl.innerHTML = "<strong>Error:</strong> Plotly library could not be loaded from local static files. Please check the server logs or static file configuration.";
+                }
+                return;
+            }
+            if (statusEl) statusEl.classList.add('d-none');
+
+            {% if not error %}
+            const plotData = [
+                { id: 'chart-rev-trend', data: {{ exec_plots.trend|safe }} },
+                { id: 'chart-rev-orders', data: {{ exec_plots.relationship|safe }} },
+                { id: 'chart-peak-hours', data: {{ sales_plots.peak_hours|safe }} },
+                { id: 'chart-retention', data: {{ cust_plots.retention|safe }} },
+                { id: 'chart-cohort-rev', data: {{ cust_plots.revenue_evo|safe }} },
+                { id: 'chart-segmentation', data: {{ cust_plots.segmentation|safe }} },
+                { id: 'chart-clv', data: {{ cust_plots.clv|safe }} },
+                { id: 'chart-top-products', data: {{ prod_plots.top_analysis|safe }} },
+                { id: 'chart-concentration', data: {{ prod_plots.concentration|safe }} },
+                { id: 'chart-return-risk', data: {{ prod_plots.return_risk|safe }} },
+                { id: 'chart-geo-map', data: {{ geo_plots.map|safe }} },
+                { id: 'chart-leakage', data: {{ ops_plots.leakage|safe }} },
+                { id: 'chart-cancellation', data: {{ ops_plots.cancellation|safe }} }
+            ];
+
+            plotData.forEach(plot => {
+                const el = document.getElementById(plot.id);
+                if (el) {
+                    try {
+                        Plotly.newPlot(plot.id, plot.data.data, plot.data.layout, config);
+                        console.log(`Successfully rendered ${plot.id}`);
+                    } catch (e) {
+                        console.error(`Error rendering ${plot.id}:`, e);
+                        el.innerHTML = `<div class="alert alert-warning m-3">Error rendering chart: ${plot.id}</div>`;
+                    }
+                }
+            });
+            {% endif %}
+        }
+
+        document.addEventListener('DOMContentLoaded', initPlots);
+
+        document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(el => {
+            el.addEventListener('shown.bs.tab', () => {
+                window.dispatchEvent(new Event('resize'));
+                const activeTabId = el.getAttribute('data-bs-target').substring(1);
+                const activePane = document.getElementById(activeTabId);
+                if (activePane) {
+                    activePane.querySelectorAll('.js-plotly-plot').forEach(plotEl => {
+                        Plotly.Plots.resize(plotEl);
+                    });
+                }
+            });
+        });
+    </script>
+
+    {% bootstrap_javascript %}
+</body>
+</html>

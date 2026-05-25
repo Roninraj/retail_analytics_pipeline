@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY frontend/ .
+
+RUN pip install django pandas requests plotly django-plotly-dash django-bootstrap5
+
+# Migrate and prepare
+# RUN python manage.py migrate # This should be done at runtime or in a pre-deployment step
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]

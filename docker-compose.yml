@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: retail-db-dev
+    environment:
+      MYSQL_DATABASE: retail_db
+      MYSQL_USER: retail_user
+      MYSQL_PASSWORD: retail_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3307:3306" # Mapped to 3307 on host
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: retail-backend-dev
+    volumes:
+      - ./backend:/app/backend
+      - ./Scripts:/app/Scripts
+    ports:
+      - "9000:8000" # Mapped to 9000 on host
+    environment:
+      - DB_HOST=db
+      - DB_USER=retail_user
+      - DB_PASSWORD=retail_password
+      - DB_NAME=retail_db
+    command: uvicorn main:app --app-dir backend --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: retail-frontend-dev
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "9090:8080" # Mapped to 9090 on host
+    environment:
+      - API_URL=http://backend:8000
+    command: python manage.py runserver 0.0.0.0:8080
+    depends_on:
+      - backend
+
+  spark-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    container_name: retail-spark-dev
+    volumes:
+      - ./Scripts:/app/Scripts
+      - ./Dataset:/app/Dataset
+      - ./backend:/app/backend
+    environment:
+      - DB_HOST=db
+      - DB_USER=retail_user
+      - DB_PASSWORD=retail_password
+      - DB_NAME=retail_db
+      - PYTHONPATH=/app
+    entrypoint: ["tail", "-f", "/dev/null"]
+    depends_on:
+      db:
+        condition: service_healthy

@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ingest-data-job
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: init-db
+        image: retail-ingest:latest
+        command: ["python", "Scripts/init_db.py"]
+        env:
+        - name: DB_HOST
+          value: "mysql-service"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: retail-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: retail-secrets
+              key: DB_PASSWORD
+      containers:
+      - name: ingest
+        image: retail-ingest:latest
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          value: "mysql-service"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: retail-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: retail-secrets
+              key: DB_PASSWORD
+      restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: spark-analytics-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: spark
+        image: retail-spark:latest
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          value: "mysql-service"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: retail-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: retail-secrets
+              key: DB_PASSWORD
+      restartPolicy: OnFailure

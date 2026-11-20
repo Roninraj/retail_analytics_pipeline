@@ -4,7 +4,7 @@
 
 An end-to-end, high-performance data analytics pipeline designed to process over 1M+ retail transactions, perform ML-driven customer segmentation, and serve real-time insights via a scalable microservices architecture.
 
-## 🏛 Industrial Architecture
+##  Industrial Architecture
 
 ### 1. Data Ingestion & Collection
 *   **Service:** Python Ingestion Worker (`Scripts/ingest_data.py`).
@@ -35,7 +35,7 @@ An end-to-end, high-performance data analytics pipeline designed to process over
 *   **Framework:** Django + Plotly + Bootstrap 5.
 *   **Insights:** Executive KPI Scorecards, Global Revenue Heatmaps, Product Performance Charts, and Cluster Analysis.
 
-## 🚀 Orchestration & Deployment
+##  Orchestration & Deployment
 
 The entire system is containerized and managed via **Kubernetes**.
 
